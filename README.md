@@ -336,17 +336,7 @@ I have created 10001 records and every 100 records deleted 1st name in csv file 
 
 						
 						
-						//@Bean
-						//public DataSource jdbcDataSource(Environment env)
-						//		throws Exception {
-						//	org.apache.commons.dbcp.BasicDataSource dataStore = new org.apache.commons.dbcp.BasicDataSource();
-							//dataStore.setDriverClassName(env.getRequiredProperty("jdbcClassName"));
-							//dataStore.setUrl(env.getRequiredProperty("jdbcUrl"));
-							//dataStore.setUsername(env.getRequiredProperty("jdbcUsername"));
-							//dataStore.setPassword(env.getRequiredProperty("jdbcPassword"));//use Bcrypt hash
-						//	return dataStore;
-					//	}
-						
+												
 						@Bean
 						public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
 							return new PropertySourcesPlaceholderConfigurer();
