@@ -974,3 +974,14 @@ if want to run job via PCF scheduler
 Go to the application in Apps Manager -> Tasks and click on Enable Scheduling to bind the application with the PCF Scheduler. Now you can create a job as shown in the below picture.
 
 - http://www.rajeshbhojwani.co.in/2018/11/scheduling-jobs-using-pcf-scheduler.html
+
+
+------------------------------------------------------------------
+- https://github.com/vaquarkhan/vaquarkhan/wiki/Spring-Batch
+- https://www.youtube.com/watch?v=COzkPkHZMG8
+- https://spring.io/guides/gs/batch-processing/
+- https://stackoverflow.com/questions/14010234/spring-batch-commit-interval-and-skip-limit
+- https://stackoverflow.com/questions/24233821/skippable-exception-classes-for-spring-batch-with-java-based-configuration
+- https://stackoverflow.com/questions/39134634/spring-batch-java-config-skip-step-when-exception-and-go-to-next-steps/39143725
+- https://docs.spring.io/spring-batch/4.1.x/reference/html/step.html#configuringSkip
+- https://dzone.com/articles/getting-started-with-kafka-2
