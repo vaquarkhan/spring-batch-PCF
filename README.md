@@ -977,6 +977,7 @@ Go to the application in Apps Manager -> Tasks and click on Enable Scheduling to
 
 
 ------------------------------------------------------------------
+- https://docs.spring.io/spring-batch/4.1.x/reference/html/step.html#configureStep
 - https://github.com/vaquarkhan/vaquarkhan/wiki/Spring-Batch
 - https://www.youtube.com/watch?v=COzkPkHZMG8
 - https://spring.io/guides/gs/batch-processing/
