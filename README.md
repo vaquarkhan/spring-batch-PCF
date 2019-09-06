@@ -144,7 +144,7 @@ PCF instance
 		spring.datasource.password=
 		spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
 
-		keySpELExpression=matchKey
+		keySpELExpression=primaryKey
 		##
 		spring.batch.job.enabled=false
 		spring.batch.initializer.enabled=false
@@ -440,4 +440,522 @@ I have created 10001 records and every 100 records deleted 1st name in csv file 
 ---------------------------------------------------------
 
 
-9)
+9) Now create domain object
+
+			package khan.vaquar.loader.domain;
+			/**
+			 * 
+			 * @author vaquar khan
+			 *
+			 */
+			public class Person {
+
+				private String lastName;
+				private String firstName;
+
+				public Person() {
+				}
+
+				public Person(String firstName, String lastName) {
+					this.firstName = firstName;
+					this.lastName = lastName;
+				}
+
+				public void setFirstName(String firstName) {
+					this.firstName = firstName;
+				}
+
+				public String getFirstName() {
+					return firstName;
+				}
+
+				public String getLastName() {
+					return lastName;
+				}
+
+				public void setLastName(String lastName) {
+					this.lastName = lastName;
+				}
+
+				@Override
+				public String toString() {
+					return "firstName: " + firstName + ", lastName: " + lastName;
+				}
+
+			}
+
+
+
+
+
+---------------------------------------------------------
+
+
+10) Create processor
+
+				package khan.vaquar.loader.processor;
+
+				import org.slf4j.Logger;
+				import org.slf4j.LoggerFactory;
+				import org.springframework.batch.item.ItemProcessor;
+
+				import khan.vaquar.loader.domain.Person;
+				/**
+				 * 
+				 * @author vaquar khan
+				 *
+				 */
+				public class PersonItemProcessor implements ItemProcessor<Person, Person> {
+
+					private static final Logger log = LoggerFactory.getLogger(PersonItemProcessor.class);
+					
+					@Override
+					public Person process(final Person person) throws Exception {
+						final String firstName = person.getFirstName().toUpperCase();
+						final String lastName = person.getLastName().toUpperCase();
+						//try {
+							if (firstName.isEmpty()) {
+								throw new Exception("Tets exception");
+							}
+							
+						/*	
+						} catch (Exception e) {
+							String stackTrace = Debugger.stackTrace(e);
+							// this.logger.error(stackTrace + " ITEMS:" + items);
+							log.error(stackTrace + " ITEMS:" + firstName);
+							//
+							throw new LoaderException("null pointer", person.getFirstName(), person, e);
+
+						}
+				*/
+					
+
+					final Person transformedPerson = new Person(firstName, lastName);
+
+					// log.info("Converting (" + person + ") into (" + transformedPerson + ")");
+
+					return transformedPerson;
+				}
+
+				}
+
+
+---------------------------------------------------------
+
+11) Create SpELConverter
+
+package khan.vaquar.loader.transformation;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.stereotype.Component;
+
+/**
+ * 
+ * @author vaquar khan
+ *
+ */
+@Component
+public class SpELConverter implements Converter<Object, Object>{
+
+	@Value("${keySpELExpression}")
+	private String expression;
+	
+	
+	public String getExpression() {
+		return expression;
+	}
+
+	public void setExpression(String expression) {
+		this.expression = expression;
+	}
+
+	@Override
+	public Object convert(Object source) {
+		
+		ExpressionParser parser = new SpelExpressionParser();
+
+		Expression exp = parser.parseExpression(expression);
+		Object output = exp.getValue(source);
+		return output;
+	}
+
+}
+
+
+--------------------------------------------------
+
+###  We are looking all possible useful listner 
+
+12)  ChunkCountListener 
+
+
+				package khan.vaquar.loader.listener;
+
+				import java.text.MessageFormat;
+
+				import org.apache.logging.log4j.LogManager;
+				import org.apache.logging.log4j.Logger;
+				import org.springframework.batch.core.ChunkListener;
+				import org.springframework.batch.core.scope.context.ChunkContext;
+				/**
+				 * 
+				 * @author vaquar khan
+				 *
+				 */
+				/**
+				 * Log the count of items processed at a specified interval.
+				 * 
+				 *
+				 */
+				public class ChunkCountListener implements ChunkListener {
+
+					private static final Logger log = LogManager.getLogger(ChunkCountListener.class);
+
+					private MessageFormat fmt = new MessageFormat("{0} items processed");
+
+					private int loggingInterval = 1000;
+
+					@Override
+					public void beforeChunk(ChunkContext context) {
+						// Nothing to do here
+					}
+
+					@Override
+					public void afterChunk(ChunkContext context) {
+
+						int count = context.getStepContext().getStepExecution().getReadCount();
+
+						// If the number of records processed so far is a multiple of the logging
+						// interval then output a log message.
+						if (count > 0 && count % loggingInterval == 0) {
+							log.info("++++++++++++++++++++++++++++++++++++++++++++++++++++");
+							log.info(fmt.format(new Object[] { new Integer(count) }));
+							log.info("++++++++++++++++++++++++++++++++++++++++++++++++++++");
+						}
+					}
+
+					@Override
+					public void afterChunkError(ChunkContext context) {
+						// Nothing to do here
+					}
+
+					public void setItemName(String itemName) {
+						this.fmt = new MessageFormat("{0} " + itemName + " processed");
+					}
+
+					public void setLoggingInterval(int loggingInterval) {
+						this.loggingInterval = loggingInterval;
+					}
+				}
+
+
+
+--------------------------------------------------
+
+
+13)  JobCompletionExitListener
+
+			package khan.vaquar.loader.listener;
+
+			import org.apache.logging.log4j.LogManager;
+			import org.apache.logging.log4j.Logger;
+			import org.springframework.batch.core.ExitStatus;
+			import org.springframework.batch.core.JobExecution;
+			import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+			import org.springframework.stereotype.Component;
+
+			/**
+			 * 
+			 * @author vaquar khan
+			 *
+			 */
+			@Component
+			public class JobCompletionExitListener extends JobExecutionListenerSupport
+			{
+				static Logger log = LogManager.getLogger(JobCompletionExitListener.class);
+				
+				@Override
+				public void afterJob(JobExecution jobExecution) {
+
+					if(jobExecution == null)
+						return;
+					
+					ExitStatus es = jobExecution.getExitStatus();
+					
+					if(es != null && "FAILED".equals(es.getExitCode()))
+					{
+						log.error("Failed job executiuion:"+jobExecution+" exitStatus:"+es);
+						System.exit(-1);
+					}
+					
+					
+					System.exit(0);
+				}
+
+			}
+
+
+-------------------------------------------
+
+14 ) JobCompletionNotificationListener
+
+
+				package khan.vaquar.loader.listener;
+
+				import org.slf4j.Logger;
+				import org.slf4j.LoggerFactory;
+				import org.springframework.batch.core.BatchStatus;
+				import org.springframework.batch.core.JobExecution;
+				import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+				import org.springframework.beans.factory.annotation.Autowired;
+				import org.springframework.jdbc.core.JdbcTemplate;
+				import org.springframework.stereotype.Component;
+
+				import khan.vaquar.loader.domain.Person;
+				/**
+				 * 
+				 * @author vaquar khan
+				 *
+				 */
+				@Component
+				public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
+
+					private static final Logger log = LoggerFactory.getLogger(JobCompletionNotificationListener.class);
+
+					private final JdbcTemplate jdbcTemplate;
+
+					@Autowired
+					public JobCompletionNotificationListener(JdbcTemplate jdbcTemplate) {
+						this.jdbcTemplate = jdbcTemplate;
+					}
+
+					@Override
+					public void afterJob(JobExecution jobExecution) {
+						/*
+						if(jobExecution.getStatus() == BatchStatus.COMPLETED) {
+							log.info("!!! JOB FINISHED! Time to verify the results");
+
+							jdbcTemplate.query("SELECT first_name, last_name FROM people",
+								(rs, row) -> new Person(
+									rs.getString(1),
+									rs.getString(2))
+							).forEach(person -> log.info("Found <" + person + "> in the database."));
+						}
+						*/
+					}
+					
+				}
+
+
+-------------------------------------------
+
+15) Log4JSkipListener
+
+				package khan.vaquar.loader.listener;
+
+				import org.apache.logging.log4j.LogManager;
+				import org.apache.logging.log4j.Logger;
+				import org.springframework.batch.core.annotation.OnReadError;
+				import org.springframework.batch.core.annotation.OnSkipInWrite;
+				import org.springframework.stereotype.Component;
+
+				import nyla.solutions.core.util.Debugger;
+				/**
+				 * 
+				 * @author vaquar khan
+				 *
+				 */
+				@Component
+				public class Log4JSkipListener {
+
+					static Logger log = LogManager.getLogger("badRecordLogger");
+
+					@OnReadError
+					public void errorOnRead( Exception exception ) {
+						
+						log.error("errorOnRead:"+Debugger.stackTrace(exception));
+
+					}
+
+					@OnSkipInWrite
+					public void errorOnWrite( Object o, Throwable error ) {
+						log.error("Error writing record = " + o);
+						
+						log.error("errorOnWrite:"+ Debugger.stackTrace(error)+" OBJECT:"+o);
+					}
+
+				}
+ 
+
+-------------------------------------------
+
+16)  LogStepExecutionListener
+
+			package khan.vaquar.loader.listener;
+
+			import org.slf4j.LoggerFactory;
+			import org.springframework.batch.core.ExitStatus;
+			import org.springframework.batch.core.StepExecution;
+			import org.springframework.batch.core.StepExecutionListener;
+			/**
+			 * 
+			 * @author vaquar khan
+			 *
+			 */
+			public class LogStepExecutionListener  implements StepExecutionListener {
+				
+				private static final org.slf4j.Logger log = LoggerFactory.getLogger(LogStepExecutionListener.class);
+				
+				
+				@Override
+				public void beforeStep(StepExecution stepExecution) {
+					log.debug("------------------------------------------------------------------------------------");
+					log.debug("START BEFORE STEP");
+					
+					if(stepExecution == null)
+						return;
+					log.debug("StepExecutionListener - beforeStep:getStartTime=" +  stepExecution.getStartTime());
+					log.debug("StepExecutionListener - beforeStep:getStartTime=" +  stepExecution.getEndTime());
+					log.debug("StepExecutionListener - beforeStep:getExitStatus=" +  stepExecution.getExitStatus());
+					log.debug("StepExecutionListener - beforeStep:getFailureExceptions=" +  stepExecution.getFailureExceptions());
+					log.info("StepExecutionListener - beforeStep:getSummary=" +  stepExecution.getSummary());
+					
+					//
+					
+					log.debug("StepExecutionListener - afterStep:getProcessSkipCount=" +  stepExecution.getProcessSkipCount());
+					log.debug("StepExecutionListener - afterStep:getRollbackCount=" +  stepExecution.getRollbackCount());
+					log.debug("StepExecutionListener - afterStep:getWriteCount=" +  stepExecution.getWriteCount());
+					log.debug("StepExecutionListener - afterStep:getWriteSkipCount=" +  stepExecution.getWriteSkipCount());
+					log.info("StepExecutionListener - afterStep:getCommitCount=" +  stepExecution.getCommitCount());
+					log.info("StepExecutionListener - afterStep:getReadCount=" +  stepExecution.getReadCount());
+					log.debug("StepExecutionListener - afterStep:getReadSkipCount=" +  stepExecution.getReadSkipCount());
+					log.debug("StepExecutionListener - afterStep:getLastUpdated=" +  stepExecution.getLastUpdated());
+					log.info("StepExecutionListener - afterStep:getExitStatus=" +  stepExecution.getExitStatus());
+					log.info("StepExecutionListener - afterStep:getFailureExceptions=" +  stepExecution.getFailureExceptions());
+					log.info("StepExecutionListener - afterStep:getSummary=" +  stepExecution.getSummary());
+					
+					
+					log.info("------------------------------------------------------------------------------------");
+					
+				}
+
+				@Override
+				public ExitStatus afterStep(StepExecution stepExecution) {
+					//System.out.println("StepExecutionListener - afterStep");
+					log.info("------------------------------------------------------------------------------------");
+					log.debug("END AFTER STEP");
+					
+					if(stepExecution == null)
+						return null;
+					
+					log.debug("StepExecutionListener - afterStep:getFilterCount=" +  stepExecution.getFilterCount());
+					log.debug("StepExecutionListener - afterStep:getProcessSkipCount=" +  stepExecution.getProcessSkipCount());
+					log.debug("StepExecutionListener - afterStep:getRollbackCount=" +  stepExecution.getRollbackCount());
+					log.debug("StepExecutionListener - afterStep:getWriteCount=" +  stepExecution.getWriteCount());
+					log.debug("StepExecutionListener - afterStep:getWriteSkipCount=" +  stepExecution.getWriteSkipCount());
+					log.debug("StepExecutionListener - afterStep:getStepName=" +  stepExecution.getStepName());
+					log.debug("StepExecutionListener - afterStep:getStartTime=" +  stepExecution.getStartTime());
+					//
+					log.debug("StepExecutionListener - afterStep:getStartTime=" +  stepExecution.getEndTime());
+					log.info("StepExecutionListener - afterStep:getCommitCount=" +  stepExecution.getCommitCount());
+					log.info("StepExecutionListener - afterStep:getReadCount=" +  stepExecution.getReadCount());
+					log.debug("StepExecutionListener - afterStep:getReadSkipCount=" +  stepExecution.getReadSkipCount());
+					log.debug("StepExecutionListener - afterStep:getLastUpdated=" +  stepExecution.getLastUpdated());
+					log.info("StepExecutionListener - afterStep:getExitStatus=" +  stepExecution.getExitStatus());
+					log.info("StepExecutionListener - afterStep:getFailureExceptions=" +  stepExecution.getFailureExceptions());
+					log.info("StepExecutionListener - afterStep:getSummary=" +  stepExecution.getSummary());
+					log.info("------------------------------------------------------------------------------------");
+					
+					return null;
+				}
+
+			}
+
+
+-------------------------------------------
+
+17)  StepExecutionListener
+
+
+					package khan.vaquar.loader.listener;
+
+					import java.io.PrintWriter;
+					import java.io.StringWriter;
+					import java.util.List;
+
+					import org.apache.logging.log4j.LogManager;
+					import org.apache.logging.log4j.Logger;
+					import org.springframework.batch.core.annotation.OnSkipInProcess;
+					import org.springframework.batch.core.annotation.OnSkipInRead;
+					import org.springframework.batch.core.annotation.OnSkipInWrite;
+					import org.springframework.batch.core.annotation.OnWriteError;
+
+					import khan.vaquar.loader.domain.Person;
+					/**
+					 * 
+					 * @author vaquar khan
+					 *
+					 */
+					public class StepExecutionListener {
+						private static final  Logger LOG = LogManager.getLogger(StepExecutionListener.class);
+						
+						  @OnSkipInRead
+						  public void onSkipInRead(Throwable t) {
+							  LOG.error("On Skip in Read Error : " + t.getMessage());
+						  }
+
+						  @OnSkipInWrite
+						  public void onSkipInWrite(Person item, Throwable t) {
+							  LOG.error("Skipped in write due to : " + t.getMessage());
+						  }
+
+						  @OnSkipInProcess
+						  public void onSkipInProcess(Person item, Throwable t) {
+							  LOG.error("Skipped in process due to: " + t.getMessage()+"Person ="+item.toString());
+							  LOG.error(pringtStackTrace(t));
+							  
+							  
+						  }
+
+						  @OnWriteError
+						  public void onWriteError(Exception exception, List<? extends Person> items) {
+							  LOG.error("Error on write on " + items + " : " + exception.getMessage());
+						  }
+
+						  private String pringtStackTrace(Throwable exception) {
+							if(null ==exception) {
+								return "";
+							}
+							StringWriter sw = new StringWriter();
+							PrintWriter pw = new PrintWriter(sw);
+							exception.printStackTrace(pw);
+							String sStackTrace = sw.toString(); 
+							return sStackTrace;
+						}
+						
+					}
+
+
+
+
+--------------------------------------------------------------
+
+18) Create manifest.yaml
+
+
+			applications:
+			- name: springbatchpoc
+			  memory: 2G
+			  disk_quota: 1G
+			  instances: 1
+			  health-check-type: none
+			  path: target/vkhan-batch-processing-0.1.0.jar
+			  env: 
+				SPRING_PROFILES_ACTIVE : "dev"
+				
+			routes:
+			- route: springbatchpoc.app.vaquar.khan.com
