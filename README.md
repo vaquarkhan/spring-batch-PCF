@@ -959,3 +959,28 @@ public class SpELConverter implements Converter<Object, Object>{
 				
 			routes:
 			- route: springbatchpoc.app.vaquar.khan.com
+
+---------------------------------------------------------
+
+### Now deploy to PCF
+
+So far we have created a Spring Batch job. Now let's deploy it to PCF. You just need to package the code and cf push to PCF with a manifest file.
+
+
+          cf login -a api.sys.app.vaquar.khan.com -u vaquarkhan
+          cf push springbatchpoc
+
+![Alt Text](https://1.bp.blogspot.com/-tDSpjNRCJM0/XJsVvkeDBtI/AAAAAAAAPhI/LqjTJGlTk-UPJ0zMos1KAVWRO0XuFmGfQCLcBGAs/s400/Crashed_app.PNG)
+
+
+--------------------------------------------------------------
+
+if want to run job via PCF scheduler 
+
+### Schedule Batch Job With PCF Scheduler
+
+![Alt Text](https://3.bp.blogspot.com/-DswQ4fRQ5js/XJse3AIrKrI/AAAAAAAAPhU/nkXEn9__YLkX--tRg5tJ3II7dTG4itr3QCLcBGAs/s320/PCFScheuler.PNG)
+
+Go to the application in Apps Manager -> Tasks and click on Enable Scheduling to bind the application with the PCF Scheduler. Now you can create a job as shown in the below picture.
+
+- http://www.rajeshbhojwani.co.in/2018/11/scheduling-jobs-using-pcf-scheduler.html
