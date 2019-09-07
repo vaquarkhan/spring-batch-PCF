@@ -985,7 +985,8 @@ Go to the application in Apps Manager -> Tasks and click on Enable Scheduling to
 - https://stackoverflow.com/questions/24233821/skippable-exception-classes-for-spring-batch-with-java-based-configuration
 - https://stackoverflow.com/questions/39134634/spring-batch-java-config-skip-step-when-exception-and-go-to-next-steps/39143725
 - https://docs.spring.io/spring-batch/4.1.x/reference/html/step.html#configuringSkip
-- https://dzone.com/articles/getting-started-with-kafka-2
+- https://stackoverflow.com/questions/45590663/spring-batch-scaling-in-not-happening-in-pivotal-cloud-foundary
+- https://stackoverflow.com/questions/29107607/best-spring-batch-scaling-strategy
 
 ------------------------------------------------------
 
