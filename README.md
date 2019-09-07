@@ -7,6 +7,8 @@ Spring Batch Applications on PCF with h2 db and hal browser
 ### SpringBatchArchitecture 
 
 - https://terasoluna-batch.github.io/guideline/5.0.0.RELEASE/en/Ch02_SpringBatchArchitecture.html
+- https://github.com/vaquarkhan/vaquarkhan/wiki/Spring-batch-remote-chunking-vs-remote-partitioning
+
 
 
 ### Pre-Requisite
