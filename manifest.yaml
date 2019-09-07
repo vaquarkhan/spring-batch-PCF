@@ -1,0 +1,12 @@
+applications:
+  - name: springbatchpoc
+    memory: 2G
+    disk_quota: 1G
+    instances: 1
+    health-check-type: none
+    path: target/vkhan-batch-processing-0.1.0.jar
+    env: 
+    SPRING_PROFILES_ACTIVE : "dev"
+    
+  routes:
+  - route: springbatchpoc.app.vaquar.khan.com

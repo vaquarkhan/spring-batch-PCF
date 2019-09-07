@@ -22,9 +22,9 @@ PCF instance
 
 ### Url :
 
-	- http://localhost:8080/h2-console
-	- http://localhost:8080/trigger/start
-	- http://localhost:8080/browser/index.html#/
+	- http://localhost:9090/h2-console
+	- http://localhost:9090/trigger/start
+	- http://localhost:9090/browser/index.html#/
 
 
 1) Use Spring initiializer and generate project 
