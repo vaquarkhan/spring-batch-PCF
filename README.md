@@ -988,11 +988,14 @@ Go to the application in Apps Manager -> Tasks and click on Enable Scheduling to
 - https://dzone.com/articles/getting-started-with-kafka-2
 
 ------------------------------------------------------
+
+
+### prometheus
+http://localhost:9090/actuator/prometheus
+
+------------------------------------------------------
 ### Actuator
-
 http://localhost:9090/actuator/env
-
-
 
 			{  
 			   "_links":{  
