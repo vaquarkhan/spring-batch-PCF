@@ -21,17 +21,8 @@ public class PersonItemProcessor implements ItemProcessor<Person, Person> {
 		final String lastName = person.getLastName().toUpperCase();
 		// try {
 		if (firstName.isEmpty()) {
-			throw new Exception("Tets exception");
+			throw new Exception("firstName empty exception");
 		}
-
-		/*
-		 * } catch (Exception e) { String stackTrace = Debugger.stackTrace(e); //
-		 * this.logger.error(stackTrace + " ITEMS:" + items); log.error(stackTrace +
-		 * " ITEMS:" + firstName); // throw new LoaderException("null pointer",
-		 * person.getFirstName(), person, e);
-		 * 
-		 * }
-		 */
 
 		final Person transformedPerson = new Person(firstName, lastName);
 

@@ -70,7 +70,7 @@ public class BatchConfiguration {
 	@Bean
 	public FlatFileItemReader<Person> reader() {
 		return new FlatFileItemReaderBuilder<Person>().name("personItemReader")
-				.resource(new ClassPathResource("sample-data.csv")).delimited()
+				.resource(new ClassPathResource("sample-data1.csv")).delimited()
 				.names(new String[] { "firstName", "lastName" })
 				.fieldSetMapper(new BeanWrapperFieldSetMapper<Person>() {
 					{
