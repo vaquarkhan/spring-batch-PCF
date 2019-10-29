@@ -1096,3 +1096,7 @@ http://localhost:9090/actuator/env
 				  }
 			   }
 			}
+			
+			
+			
+- https://aboullaite.me/spring-batch-tutorial-with-spring-boot/			
